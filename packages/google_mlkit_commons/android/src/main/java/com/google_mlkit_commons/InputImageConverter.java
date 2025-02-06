@@ -10,13 +10,16 @@ import com.google.mlkit.vision.common.InputImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
 
+import java.util.Objects;
 import io.flutter.plugin.common.MethodChannel;
+
+import com.google_mlkit_commons.Messages.InputImageMessage;
+import com.google_mlkit_commons.Messages.InputImageMetadata;
+import com.google_mlkit_commons.Messages.InputImageType;
 
 public class InputImageConverter {
 
-    //Returns an [InputImage] from the image data received
     public static InputImage getInputImageFromData(Map<String, Object> imageData,
             Context context,
             MethodChannel.Result result) {
@@ -70,4 +73,42 @@ public class InputImageConverter {
         }
     }
 
+    //Returns an [InputImage] from the image data received
+    public static InputImage getInputImageFromData(InputImageMessage inputImageMessage, Context context) {
+        //Differentiates whether the image data is a path for a image file or contains image data in form of bytes
+        if (inputImageMessage.getType() == InputImageType.FILE) {
+            try {
+                InputImage inputImage = InputImage.fromFilePath(context, Uri.fromFile(new File(inputImageMessage.getFilePath())));
+                return inputImage;
+            } catch (IOException e) {
+                Log.e("ImageError", "Getting Image failed");
+                Log.e("ImageError", e.toString());
+                return null;
+                // throw new FlutterError("InputImageConverterError", e.toString(), e.);
+            }
+        }
+        if (inputImageMessage.getType() == InputImageType.BYTES) {
+            try {
+                InputImageMetadata metaData = inputImageMessage.getMetadata();
+                assert metaData != null;
+
+                if (metaData.getFormat() == ImageFormat.NV21 || metaData.getFormat() == ImageFormat.YV12) {
+                    return InputImage.fromByteArray(
+                            inputImageMessage.getBytes(),
+                            metaData.getWidth().intValue(),
+                            metaData.getHeight().intValue(),
+                            metaData.getRotation().intValue(),
+                            metaData.getFormat().intValue());
+                }
+                // TODO: Use InputImage.fromMediaImage, which supports more types, e.g. IMAGE_FORMAT_YUV_420_888.
+                // See https://developers.google.com/android/reference/com/google/mlkit/vision/common/InputImage#fromMediaImage(android.media.Image,%20int)
+                return null;
+            } catch (Exception e) {
+                Log.e("ImageError", "Getting Image failed");
+                Log.e("ImageError", e.toString());
+                return null;
+            }
+        }
+        return null;
+    }
 }

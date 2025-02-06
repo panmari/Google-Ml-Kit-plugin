@@ -15,153 +15,111 @@ import com.google.mlkit.vision.label.custom.CustomImageLabelerOptions;
 import com.google.mlkit.vision.label.defaults.ImageLabelerOptions;
 import com.google_mlkit_commons.GenericModelManager;
 import com.google_mlkit_commons.InputImageConverter;
+import com.google_mlkit_commons.Messages.ImageLabelDetectorApi;
+import com.google_mlkit_commons.Messages.InputImageType;
+import com.google_mlkit_commons.Messages.ImageLabelerOptionsMessage;
+import com.google_mlkit_commons.Messages.ImageLabelerType;
+import com.google_mlkit_commons.Messages.ImageLabelMessage;
+import com.google_mlkit_commons.Messages.InputImageMessage;
+import com.google_mlkit_commons.Messages.Result;
+import com.google_mlkit_commons.Messages.FlutterError;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel;
-
-public class ImageLabelDetector implements MethodChannel.MethodCallHandler {
-    private static final String START = "vision#startImageLabelDetector";
-    private static final String CLOSE = "vision#closeImageLabelDetector";
-    private static final String MANAGE = "vision#manageFirebaseModels";
+public class ImageLabelDetector implements ImageLabelDetectorApi {
 
     private final Context context;
-    private final Map<String, ImageLabeler> instances = new HashMap<>();
-    private final GenericModelManager genericModelManager = new GenericModelManager();
+    private ImageLabeler imageLabeler;
 
     public ImageLabelDetector(Context context) {
         this.context = context;
     }
 
-    @Override
-    public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-        String method = call.method;
-        switch (method) {
-            case START:
-                handleDetection(call, result);
-                break;
-            case CLOSE:
-                closeDetector(call);
-                result.success(null);
-                break;
-            case MANAGE:
-                manageModel(call, result);
-                break;
-            default:
-                result.notImplemented();
-                break;
+    public void create(ImageLabelerOptionsMessage options) {
+        if (options.getType() == ImageLabelerType.BASE) {
+            ImageLabelerOptions labelerOptions = getDefaultOptions(options);
+            this.imageLabeler = ImageLabeling.getClient(labelerOptions);
         }
+        throw new FlutterError("Not yet implemented", "", "");
     }
 
-    private void handleDetection(MethodCall call, final MethodChannel.Result result) {
-        Map<String, Object> imageData = call.argument("imageData");
-        InputImage inputImage = InputImageConverter.getInputImageFromData(imageData, context, result);
-        if (inputImage == null) return;
+    public void handleDetection(InputImageMessage inputImageMessage, Result<List<ImageLabelMessage>> result) {
+        InputImage inputImage = InputImageConverter.getInputImageFromData(inputImageMessage, this.context);
+        if (inputImage == null) {
+            throw new FlutterError("Input image is null", "", "");
+        }
 
-        String id = call.argument("id");
-        ImageLabeler imageLabeler = instances.get(id);
-        if (imageLabeler == null) {
-            Map<String, Object> options = call.argument("options");
-            if (options == null) {
-                result.error("ImageLabelDetectorError", "Invalid options", null);
-                return;
-            }
-
-            String type = (String) options.get("type");
-            if (type.equals("base")) {
-                ImageLabelerOptions labelerOptions = getDefaultOptions(options);
-                imageLabeler = ImageLabeling.getClient(labelerOptions);
-            } else if (type.equals("local")) {
-                CustomImageLabelerOptions labelerOptions = getLocalOptions(options);
-                imageLabeler = ImageLabeling.getClient(labelerOptions);
-            } else if (type.equals("remote")) {
-                CustomImageLabelerOptions labelerOptions = getRemoteOptions(options);
-                if (labelerOptions == null) {
-                    result.error("Error Model has not been downloaded yet", "Model has not been downloaded yet", "Model has not been downloaded yet");
-                    return;
-                }
-                imageLabeler = ImageLabeling.getClient(labelerOptions);
-            } else {
-                String error = "Invalid model type: " + type;
-                result.error(type, error, error);
-                return;
-            }
-            instances.put(id, imageLabeler);
+        if (this.imageLabeler == null) {
+            throw new FlutterError("Not yet initialize, call `create` before using", "", "");
         }
 
         imageLabeler.process(inputImage)
                 .addOnSuccessListener(imageLabels -> {
-                    List<Map<String, Object>> labels = new ArrayList<>(imageLabels.size());
+                    List<ImageLabelMessage> labels = new ArrayList<>(imageLabels.size());
                     for (ImageLabel label : imageLabels) {
-                        Map<String, Object> labelData = new HashMap<>();
-                        labelData.put("text", label.getText());
-                        labelData.put("confidence", label.getConfidence());
-                        labelData.put("index", label.getIndex());
-                        labels.add(labelData);
+                        labels.add(new ImageLabelMessage.Builder().setConfidence((double) label.getConfidence()).setLabel(label.getText()).setIndex((long) label.getIndex()).build());
                     }
-
                     result.success(labels);
                 })
-                .addOnFailureListener(e -> result.error("ImageLabelDetectorError", e.toString(), null));
+                .addOnFailureListener(e -> result.error(e));
     }
 
     //Labeler options that are provided to default image labeler(uses inbuilt model).
-    private ImageLabelerOptions getDefaultOptions(Map<String, Object> labelerOptions) {
-        float confidenceThreshold = (float) (double) labelerOptions.get("confidenceThreshold");
+    private ImageLabelerOptions getDefaultOptions(ImageLabelerOptionsMessage labelerOptions) {
         return new ImageLabelerOptions.Builder()
-                .setConfidenceThreshold(confidenceThreshold)
+                .setConfidenceThreshold(labelerOptions.getConfidenceThreshold().floatValue())
                 .build();
     }
 
-    //Options for labeler to work with custom model.
-    private CustomImageLabelerOptions getLocalOptions(Map<String, Object> labelerOptions) {
-        float confidenceThreshold = (float) (double) labelerOptions.get("confidenceThreshold");
-        int maxCount = (int) labelerOptions.get("maxCount");
-        String path = (String) labelerOptions.get("path");
-        LocalModel localModel = new LocalModel.Builder()
-                .setAbsoluteFilePath(path)
-                .build();
-        return new CustomImageLabelerOptions.Builder(localModel)
-                .setConfidenceThreshold(confidenceThreshold)
-                .setMaxResultCount(maxCount)
-                .build();
-    }
-
-    //Options for labeler to work with custom model.
-    private CustomImageLabelerOptions getRemoteOptions(Map<String, Object> labelerOptions) {
-        float confidenceThreshold = (float) (double) labelerOptions.get("confidenceThreshold");
-        int maxCount = (int) labelerOptions.get("maxCount");
-        String name = (String) labelerOptions.get("modelName");
-
-        FirebaseModelSource firebaseModelSource = new FirebaseModelSource.Builder(name).build();
-        CustomRemoteModel remoteModel = new CustomRemoteModel.Builder(firebaseModelSource).build();
-        if (!genericModelManager.isModelDownloaded(remoteModel)) {
-            return null;
-        }
-
-        return new CustomImageLabelerOptions.Builder(remoteModel)
-                .setConfidenceThreshold(confidenceThreshold)
-                .setMaxResultCount(maxCount)
-                .build();
-    }
-
-    private void closeDetector(MethodCall call) {
-        String id = call.argument("id");
-        ImageLabeler imageLabeler = instances.get(id);
-        if (imageLabeler == null) return;
-        imageLabeler.close();
-        instances.remove(id);
-    }
-
-    private void manageModel(MethodCall call, final MethodChannel.Result result) {
-        FirebaseModelSource firebaseModelSource = new FirebaseModelSource.Builder(call.argument("model"))
+    // //Options for labeler to work with custom model.
+    // private CustomImageLabelerOptions getLocalOptions(Map<String, Object> labelerOptions) {
+    //     float confidenceThreshold = (float) (double) labelerOptions.get("confidenceThreshold");
+    //     int maxCount = (int) labelerOptions.get("maxCount");
+    //     String path = (String) labelerOptions.get("path");
+    //     LocalModel localModel = new LocalModel.Builder()
+    //             .setAbsoluteFilePath(path)
+    //             .build();
+    //     return new CustomImageLabelerOptions.Builder(localModel)
+    //             .setConfidenceThreshold(confidenceThreshold)
+    //             .setMaxResultCount(maxCount)
+    //             .build();
+    // }
+    // //Options for labeler to work with custom model.
+    // private CustomImageLabelerOptions getRemoteOptions(Map<String, Object> labelerOptions) {
+    //     float confidenceThreshold = (float) (double) labelerOptions.get("confidenceThreshold");
+    //     int maxCount = (int) labelerOptions.get("maxCount");
+    //     String name = (String) labelerOptions.get("modelName");
+    //     FirebaseModelSource firebaseModelSource = new FirebaseModelSource.Builder(name).build();
+    //     CustomRemoteModel remoteModel = new CustomRemoteModel.Builder(firebaseModelSource).build();
+    //     if (!genericModelManager.isModelDownloaded(remoteModel)) {
+    //         return null;
+    //     }
+    //     return new CustomImageLabelerOptions.Builder(remoteModel)
+    //             .setConfidenceThreshold(confidenceThreshold)
+    //             .setMaxResultCount(maxCount)
+    //             .build();
+    // }
+    // public void closeDetector(String id) {
+    //     ImageLabeler imageLabeler = instances.get(id);
+    //     if (imageLabeler == null) {
+    //         return;
+    //     }
+    //     imageLabeler.close();
+    //     instances.remove(id);
+    // }
+    public void manageModel(String modelName) {
+        FirebaseModelSource firebaseModelSource = new FirebaseModelSource.Builder(modelName)
                 .build();
         CustomRemoteModel model = new CustomRemoteModel.Builder(firebaseModelSource)
                 .build();
-        genericModelManager.manageModel(model, call, result);
+        // TODO(panmari): Support more arguments and pipe further here.
+        // genericModelManager.manageModel(model);
+    }
+
+    public void closeDetector(String id) {
+        // TODO?
     }
 }
