@@ -95,7 +95,7 @@ public class Messages {
    *
    * Generated class from Pigeon that represents data sent in messages.
    */
-  public static final class InputImageMetadata {
+  public static final class InputImageMetadataMessage {
     private @NonNull Long width;
 
     public @NonNull Long getWidth() {
@@ -185,13 +185,13 @@ public class Messages {
     }
 
     /** Constructor is non-public to enforce null safety; use Builder. */
-    InputImageMetadata() {}
+    InputImageMetadataMessage() {}
 
     @Override
     public boolean equals(Object o) {
       if (this == o) { return true; }
       if (o == null || getClass() != o.getClass()) { return false; }
-      InputImageMetadata that = (InputImageMetadata) o;
+      InputImageMetadataMessage that = (InputImageMetadataMessage) o;
       return width.equals(that.width) && height.equals(that.height) && rotation.equals(that.rotation) && format.equals(that.format) && bytesPerRow.equals(that.bytesPerRow);
     }
 
@@ -242,8 +242,8 @@ public class Messages {
         return this;
       }
 
-      public @NonNull InputImageMetadata build() {
-        InputImageMetadata pigeonReturn = new InputImageMetadata();
+      public @NonNull InputImageMetadataMessage build() {
+        InputImageMetadataMessage pigeonReturn = new InputImageMetadataMessage();
         pigeonReturn.setWidth(width);
         pigeonReturn.setHeight(height);
         pigeonReturn.setRotation(rotation);
@@ -264,8 +264,8 @@ public class Messages {
       return toListResult;
     }
 
-    static @NonNull InputImageMetadata fromList(@NonNull ArrayList<Object> pigeonVar_list) {
-      InputImageMetadata pigeonResult = new InputImageMetadata();
+    static @NonNull InputImageMetadataMessage fromList(@NonNull ArrayList<Object> pigeonVar_list) {
+      InputImageMetadataMessage pigeonResult = new InputImageMetadataMessage();
       Object width = pigeonVar_list.get(0);
       pigeonResult.setWidth((Long) width);
       Object height = pigeonVar_list.get(1);
@@ -319,13 +319,13 @@ public class Messages {
     }
 
     /** The image data when creating an image of type = [InputImageType.bytes]. */
-    private @Nullable InputImageMetadata metadata;
+    private @Nullable InputImageMetadataMessage metadata;
 
-    public @Nullable InputImageMetadata getMetadata() {
+    public @Nullable InputImageMetadataMessage getMetadata() {
       return metadata;
     }
 
-    public void setMetadata(@Nullable InputImageMetadata setterArg) {
+    public void setMetadata(@Nullable InputImageMetadataMessage setterArg) {
       this.metadata = setterArg;
     }
 
@@ -373,10 +373,10 @@ public class Messages {
         return this;
       }
 
-      private @Nullable InputImageMetadata metadata;
+      private @Nullable InputImageMetadataMessage metadata;
 
       @CanIgnoreReturnValue
-      public @NonNull Builder setMetadata(@Nullable InputImageMetadata setterArg) {
+      public @NonNull Builder setMetadata(@Nullable InputImageMetadataMessage setterArg) {
         this.metadata = setterArg;
         return this;
       }
@@ -410,7 +410,7 @@ public class Messages {
       Object bytes = pigeonVar_list.get(2);
       pigeonResult.setBytes((byte[]) bytes);
       Object metadata = pigeonVar_list.get(3);
-      pigeonResult.setMetadata((InputImageMetadata) metadata);
+      pigeonResult.setMetadata((InputImageMetadataMessage) metadata);
       return pigeonResult;
     }
   }
@@ -651,7 +651,7 @@ public class Messages {
           return value == null ? null : ImageLabelerType.values()[((Long) value).intValue()];
         }
         case (byte) 131:
-          return InputImageMetadata.fromList((ArrayList<Object>) readValue(buffer));
+          return InputImageMetadataMessage.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 132:
           return InputImageMessage.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 133:
@@ -671,9 +671,9 @@ public class Messages {
       } else if (value instanceof ImageLabelerType) {
         stream.write(130);
         writeValue(stream, value == null ? null : ((ImageLabelerType) value).index);
-      } else if (value instanceof InputImageMetadata) {
+      } else if (value instanceof InputImageMetadataMessage) {
         stream.write(131);
-        writeValue(stream, ((InputImageMetadata) value).toList());
+        writeValue(stream, ((InputImageMetadataMessage) value).toList());
       } else if (value instanceof InputImageMessage) {
         stream.write(132);
         writeValue(stream, ((InputImageMessage) value).toList());

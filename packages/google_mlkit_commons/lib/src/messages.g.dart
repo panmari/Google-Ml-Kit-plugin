@@ -27,8 +27,8 @@ enum ImageLabelerType {
 }
 
 /// Data of image required when creating image from bytes.
-class InputImageMetadata {
-  InputImageMetadata({
+class InputImageMetadataMessage {
+  InputImageMetadataMessage({
     required this.width,
     required this.height,
     required this.rotation,
@@ -73,9 +73,9 @@ class InputImageMetadata {
     ];
   }
 
-  static InputImageMetadata decode(Object result) {
+  static InputImageMetadataMessage decode(Object result) {
     result as List<Object?>;
-    return InputImageMetadata(
+    return InputImageMetadataMessage(
       width: result[0]! as int,
       height: result[1]! as int,
       rotation: result[2]! as int,
@@ -103,7 +103,7 @@ class InputImageMessage {
   Uint8List? bytes;
 
   /// The image data when creating an image of type = [InputImageType.bytes].
-  InputImageMetadata? metadata;
+  InputImageMetadataMessage? metadata;
 
   Object encode() {
     return <Object?>[
@@ -120,7 +120,7 @@ class InputImageMessage {
       type: result[0]! as InputImageType,
       filePath: result[1] as String?,
       bytes: result[2] as Uint8List?,
-      metadata: result[3] as InputImageMetadata?,
+      metadata: result[3] as InputImageMetadataMessage?,
     );
   }
 }
@@ -206,7 +206,7 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is ImageLabelerType) {
       buffer.putUint8(130);
       writeValue(buffer, value.index);
-    }    else if (value is InputImageMetadata) {
+    }    else if (value is InputImageMetadataMessage) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
     }    else if (value is InputImageMessage) {
@@ -233,7 +233,7 @@ class _PigeonCodec extends StandardMessageCodec {
         final int? value = readValue(buffer) as int?;
         return value == null ? null : ImageLabelerType.values[value];
       case 131: 
-        return InputImageMetadata.decode(readValue(buffer)!);
+        return InputImageMetadataMessage.decode(readValue(buffer)!);
       case 132: 
         return InputImageMessage.decode(readValue(buffer)!);
       case 133: 

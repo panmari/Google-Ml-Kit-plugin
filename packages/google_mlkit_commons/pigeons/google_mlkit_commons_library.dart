@@ -15,7 +15,7 @@ import 'package:pigeon/pigeon.dart';
 ))
 
 /// Data of image required when creating image from bytes.
-class InputImageMetadata {
+class InputImageMetadataMessage {
   int width;
   int height;
 
@@ -43,7 +43,7 @@ class InputImageMetadata {
   final int bytesPerRow;
 
   /// Constructor to create an instance of [InputImageMetadata].
-  InputImageMetadata({
+  InputImageMetadataMessage({
     required this.width,
     required this.height,
     required this.rotation,
@@ -68,15 +68,9 @@ class InputImageMessage {
   Uint8List? bytes;
 
   /// The image data when creating an image of type = [InputImageType.bytes].
-  InputImageMetadata? metadata;
+  InputImageMetadataMessage? metadata;
 
   InputImageMessage({required this.type});
-}
-
-enum ImageLabelerType {
-  base,
-  local,
-  remote,
 }
 
 /// Base options for [ImageLabeler].

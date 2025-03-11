@@ -47,9 +47,9 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
 }
 @end
 
-@interface PGNInputImageMetadata ()
-+ (PGNInputImageMetadata *)fromList:(NSArray<id> *)list;
-+ (nullable PGNInputImageMetadata *)nullableFromList:(NSArray<id> *)list;
+@interface PGNInputImageMetadataMessage ()
++ (PGNInputImageMetadataMessage *)fromList:(NSArray<id> *)list;
++ (nullable PGNInputImageMetadataMessage *)nullableFromList:(NSArray<id> *)list;
 - (NSArray<id> *)toList;
 @end
 
@@ -71,13 +71,13 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
 - (NSArray<id> *)toList;
 @end
 
-@implementation PGNInputImageMetadata
+@implementation PGNInputImageMetadataMessage
 + (instancetype)makeWithWidth:(NSInteger )width
     height:(NSInteger )height
     rotation:(NSInteger )rotation
     format:(NSInteger )format
     bytesPerRow:(NSInteger )bytesPerRow {
-  PGNInputImageMetadata* pigeonResult = [[PGNInputImageMetadata alloc] init];
+  PGNInputImageMetadataMessage* pigeonResult = [[PGNInputImageMetadataMessage alloc] init];
   pigeonResult.width = width;
   pigeonResult.height = height;
   pigeonResult.rotation = rotation;
@@ -85,8 +85,8 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
   pigeonResult.bytesPerRow = bytesPerRow;
   return pigeonResult;
 }
-+ (PGNInputImageMetadata *)fromList:(NSArray<id> *)list {
-  PGNInputImageMetadata *pigeonResult = [[PGNInputImageMetadata alloc] init];
++ (PGNInputImageMetadataMessage *)fromList:(NSArray<id> *)list {
+  PGNInputImageMetadataMessage *pigeonResult = [[PGNInputImageMetadataMessage alloc] init];
   pigeonResult.width = [GetNullableObjectAtIndex(list, 0) integerValue];
   pigeonResult.height = [GetNullableObjectAtIndex(list, 1) integerValue];
   pigeonResult.rotation = [GetNullableObjectAtIndex(list, 2) integerValue];
@@ -94,8 +94,8 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
   pigeonResult.bytesPerRow = [GetNullableObjectAtIndex(list, 4) integerValue];
   return pigeonResult;
 }
-+ (nullable PGNInputImageMetadata *)nullableFromList:(NSArray<id> *)list {
-  return (list) ? [PGNInputImageMetadata fromList:list] : nil;
++ (nullable PGNInputImageMetadataMessage *)nullableFromList:(NSArray<id> *)list {
+  return (list) ? [PGNInputImageMetadataMessage fromList:list] : nil;
 }
 - (NSArray<id> *)toList {
   return @[
@@ -112,7 +112,7 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
 + (instancetype)makeWithType:(PGNInputImageType)type
     filePath:(nullable NSString *)filePath
     bytes:(nullable FlutterStandardTypedData *)bytes
-    metadata:(nullable PGNInputImageMetadata *)metadata {
+    metadata:(nullable PGNInputImageMetadataMessage *)metadata {
   PGNInputImageMessage* pigeonResult = [[PGNInputImageMessage alloc] init];
   pigeonResult.type = type;
   pigeonResult.filePath = filePath;
@@ -211,7 +211,7 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
       return enumAsNumber == nil ? nil : [[PGNImageLabelerTypeBox alloc] initWithValue:[enumAsNumber integerValue]];
     }
     case 131: 
-      return [PGNInputImageMetadata fromList:[self readValue]];
+      return [PGNInputImageMetadataMessage fromList:[self readValue]];
     case 132: 
       return [PGNInputImageMessage fromList:[self readValue]];
     case 133: 
@@ -236,7 +236,7 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
     PGNImageLabelerTypeBox *box = (PGNImageLabelerTypeBox *)value;
     [self writeByte:130];
     [self writeValue:(value == nil ? [NSNull null] : [NSNumber numberWithInteger:box.value])];
-  } else if ([value isKindOfClass:[PGNInputImageMetadata class]]) {
+  } else if ([value isKindOfClass:[PGNInputImageMetadataMessage class]]) {
     [self writeByte:131];
     [self writeValue:[value toList]];
   } else if ([value isKindOfClass:[PGNInputImageMessage class]]) {

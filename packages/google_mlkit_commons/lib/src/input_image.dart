@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
+import 'messages.g.dart';
 
 /// Image format that ML Kit takes to process the image.
 class InputImage {
@@ -42,12 +43,6 @@ class InputImage {
         'path': filePath,
         'metadata': metadata?.toJson()
       };
-}
-
-/// The type of [InputImage].
-enum InputImageType {
-  file,
-  bytes,
 }
 
 /// Data of image required when creating image from bytes.

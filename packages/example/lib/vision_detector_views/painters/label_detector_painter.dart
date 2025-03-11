@@ -2,11 +2,12 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
+import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 
 class LabelDetectorPainter extends CustomPainter {
   LabelDetectorPainter(this.labels);
 
-  final List<ImageLabel> labels;
+  final List<ImageLabelMessage> labels;
 
   @override
   void paint(Canvas canvas, Size size) {

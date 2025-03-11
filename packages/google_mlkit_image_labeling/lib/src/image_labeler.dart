@@ -3,38 +3,21 @@ import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 
 /// An image labeler that processes and labels [InputImage].
 class ImageLabeler {
-  static const MethodChannel _channel =
-      MethodChannel('google_mlkit_image_labeler');
-
-  /// The options for the image labeler.
-  final ImageLabelerOptions options;
-
-  /// Instance id.
-  final id = DateTime.now().microsecondsSinceEpoch.toString();
+  ImageLabelDetectorApi? api;
 
   /// Constructor to create an instance of [ImageLabeler].
-  ImageLabeler({required this.options});
+  factory ImageLabeler({required ImageLabelerOptions options, String identifier = ''}) {
+    api = ImageLabelDetectorApi(messageChannelSuffix: identifier);
+    api.create(options);
+  }
 
   /// Processes the given image for image labeling, it returns a List of [ImageLabel].
-  Future<List<ImageLabel>> processImage(InputImage inputImage) async {
-    final result = await _channel.invokeMethod(
-        'vision#startImageLabelDetector', <String, dynamic>{
-      'options': options.toJson(),
-      'id': id,
-      'imageData': inputImage.toJson()
-    });
-    final imageLabels = <ImageLabel>[];
-
-    for (final dynamic json in result) {
-      imageLabels.add(ImageLabel.fromJson(json));
-    }
-
-    return imageLabels;
+  Future<List<ImageLabelMessage>> processImage(InputImage inputImage) async {
+    return api.processImage(inputImage);
   }
 
   /// Closes the labeler and releases its resources.
-  Future<void> close() =>
-      _channel.invokeMethod('vision#closeImageLabelDetector', {'id': id});
+  Future<void> close() => api.close();
 }
 
 /// Type of [ImageLabeler].

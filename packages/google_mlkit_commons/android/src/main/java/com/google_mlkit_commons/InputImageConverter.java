@@ -15,7 +15,7 @@ import java.util.Objects;
 import io.flutter.plugin.common.MethodChannel;
 
 import com.google_mlkit_commons.Messages.InputImageMessage;
-import com.google_mlkit_commons.Messages.InputImageMetadata;
+import com.google_mlkit_commons.Messages.InputImageMetadataMessage;
 import com.google_mlkit_commons.Messages.InputImageType;
 
 public class InputImageConverter {
@@ -89,7 +89,7 @@ public class InputImageConverter {
         }
         if (inputImageMessage.getType() == InputImageType.BYTES) {
             try {
-                InputImageMetadata metaData = inputImageMessage.getMetadata();
+                InputImageMetadataMessage metaData = inputImageMessage.getMetadata();
                 assert metaData != null;
 
                 if (metaData.getFormat() == ImageFormat.NV21 || metaData.getFormat() == ImageFormat.YV12) {

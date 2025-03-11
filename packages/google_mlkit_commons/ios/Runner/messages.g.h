@@ -33,13 +33,13 @@ typedef NS_ENUM(NSUInteger, PGNImageLabelerType) {
 - (instancetype)initWithValue:(PGNImageLabelerType)value;
 @end
 
-@class PGNInputImageMetadata;
+@class PGNInputImageMetadataMessage;
 @class PGNInputImageMessage;
 @class PGNImageLabelerOptionsMessage;
 @class PGNImageLabelMessage;
 
 /// Data of image required when creating image from bytes.
-@interface PGNInputImageMetadata : NSObject
+@interface PGNInputImageMetadataMessage : NSObject
 /// `init` unavailable to enforce nonnull fields, see the `make` class method.
 - (instancetype)init NS_UNAVAILABLE;
 + (instancetype)makeWithWidth:(NSInteger )width
@@ -77,7 +77,7 @@ typedef NS_ENUM(NSUInteger, PGNImageLabelerType) {
 + (instancetype)makeWithType:(PGNInputImageType)type
     filePath:(nullable NSString *)filePath
     bytes:(nullable FlutterStandardTypedData *)bytes
-    metadata:(nullable PGNInputImageMetadata *)metadata;
+    metadata:(nullable PGNInputImageMetadataMessage *)metadata;
 /// The type of image.
 @property(nonatomic, assign) PGNInputImageType type;
 /// The file path to the image.
@@ -85,7 +85,7 @@ typedef NS_ENUM(NSUInteger, PGNImageLabelerType) {
 /// The bytes of the image.
 @property(nonatomic, strong, nullable) FlutterStandardTypedData * bytes;
 /// The image data when creating an image of type = [InputImageType.bytes].
-@property(nonatomic, strong, nullable) PGNInputImageMetadata * metadata;
+@property(nonatomic, strong, nullable) PGNInputImageMetadataMessage * metadata;
 @end
 
 /// Base options for [ImageLabeler].
